@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task 1: Video to Images Generator | Media Utility Suite</title>
+  <title>Video to Images Generator | Enterprise Media Suite</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
       --bg: #090d16;
@@ -17,6 +17,8 @@
       --accent-hover: #3b74e6;
       --success: #10b981;
       --success-dim: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --warning-dim: rgba(245, 158, 11, 0.15);
       --text: #f1f5f9;
       --text-muted: #94a3b8;
       --radius: 12px;
@@ -31,7 +33,8 @@
       min-height: 100vh;
       padding: 24px;
     }
-    .container { max-width: 1200px; margin: 0 auto; }
+    .container { max-width: 1240px; margin: 0 auto; }
+    
     header {
       display: flex;
       justify-content: space-between;
@@ -44,7 +47,7 @@
       font-size: 0.75rem;
       background: rgba(79, 140, 255, 0.15);
       color: var(--accent);
-      padding: 4px 10px;
+      padding: 4px 12px;
       border-radius: 9999px;
       font-weight: 600;
       letter-spacing: 0.5px;
@@ -53,8 +56,8 @@
     .title h1 { font-size: 1.6rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
     .title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
     
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 24px; }
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
     
     .card {
       background: var(--card-bg);
@@ -73,10 +76,11 @@
       gap: 8px;
     }
 
+    /* Dropzone */
     .dropzone {
       border: 2px dashed rgba(255,255,255,0.15);
       border-radius: var(--radius);
-      padding: 36px 20px;
+      padding: 32px 20px;
       text-align: center;
       cursor: pointer;
       transition: all 0.25s ease;
@@ -90,6 +94,38 @@
     .dropzone h3 { font-size: 1rem; margin-bottom: 4px; }
     .dropzone p { font-size: 0.85rem; color: var(--text-muted); }
 
+    /* Video Queue List */
+    .video-queue {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .video-item {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .video-item.active { border-color: var(--accent); background: rgba(79, 140, 255, 0.08); }
+    .video-item-meta { display: flex; gap: 12px; color: var(--text-muted); font-size: 0.78rem; margin-top: 4px; }
+    .video-item-meta strong { color: var(--text); }
+    .btn-remove-video {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+    }
+
+    /* Metadata Info Card */
     .meta-box {
       margin-top: 16px;
       background: rgba(0,0,0,0.3);
@@ -102,30 +138,104 @@
       font-size: 0.85rem;
     }
     .meta-item span { display: block; color: var(--text-muted); font-size: 0.75rem; }
-    .meta-item strong { color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+    .meta-item strong { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
 
-    .tabs { display: flex; gap: 8px; margin-bottom: 16px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 8px; }
-    .tab {
-      flex: 1;
-      padding: 8px 12px;
-      font-size: 0.82rem;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      border-radius: 6px;
-      cursor: pointer;
-      font-family: inherit;
+    /* Primary Question Box */
+    .question-box {
+      background: rgba(79, 140, 255, 0.05);
+      border: 1px solid rgba(79, 140, 255, 0.25);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .question-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .count-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .count-input {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: #ffffff;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 10px 16px;
+      width: 180px;
+      outline: none;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
       font-weight: 500;
+      cursor: pointer;
       transition: all 0.2s ease;
     }
-    .tab.active {
+    .chip:hover, .chip.active {
       background: var(--accent);
       color: white;
-      box-shadow: 0 2px 10px var(--accent-glow);
+      border-color: var(--accent);
+      box-shadow: 0 2px 8px var(--accent-glow);
     }
 
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+    /* Strategy Breakdown Card */
+    .strategy-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+    .strategy-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .badge-native { background: var(--success-dim); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-interpolated { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .strategy-desc { font-size: 0.85rem; line-height: 1.5; color: var(--text); }
+    .strategy-math {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--card-border);
+      font-size: 0.78rem;
+    }
+    .strategy-math div span { display: block; color: var(--text-muted); }
+    .strategy-math div strong { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; }
+    .disclaimer-text {
+      font-size: 0.76rem;
+      color: #fbbf24;
+      margin-top: 8px;
+      font-style: italic;
+    }
+
+    /* Form Controls */
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.82rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
     .form-input, .form-select {
       width: 100%;
       background: rgba(0,0,0,0.4);
@@ -134,30 +244,41 @@
       padding: 10px 14px;
       border-radius: 8px;
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       outline: none;
     }
     .form-input:focus, .form-select:focus { border-color: var(--accent); }
-    
-    .chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-    .chip {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .chip:hover, .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
 
+    /* Advanced Collapsible */
+    .advanced-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      padding: 0;
+    }
+    .advanced-toggle:hover { color: var(--accent); }
+    .advanced-panel {
+      display: none;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* Buttons */
     .btn {
       width: 100%;
       background: var(--accent);
       color: white;
       border: none;
-      padding: 12px 20px;
+      padding: 14px 20px;
       border-radius: 8px;
       font-family: inherit;
       font-size: 0.95rem;
@@ -176,11 +297,12 @@
     .btn-success { background: var(--success); box-shadow: 0 4px 14px var(--success-dim); }
     .btn-success:hover { background: #059669; }
 
+    /* Progress Section */
     .progress-wrap { margin-top: 20px; display: none; }
     .progress-bar-bg {
       background: rgba(255,255,255,0.08);
       border-radius: 9999px;
-      height: 10px;
+      height: 12px;
       overflow: hidden;
       margin: 8px 0;
     }
@@ -191,8 +313,9 @@
       border-radius: 9999px;
       transition: width 0.15s ease;
     }
-    .progress-stats { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+    .progress-stats { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--text-muted); }
 
+    /* Teaser Preview Box */
     .teaser-box {
       margin-top: 16px;
       display: none;
@@ -202,22 +325,33 @@
       border: 1px solid var(--card-border);
       text-align: center;
     }
-    .teaser-box img { max-height: 140px; border-radius: 6px; margin-top: 8px; }
+    .teaser-box img { max-height: 140px; border-radius: 6px; margin-top: 8px; border: 1px solid var(--card-border); }
 
+    /* Results & Gallery */
     .gallery-section { margin-top: 32px; display: none; }
     .gallery-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
     }
+    .gallery-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .gallery-tab {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .gallery-tab.active { background: var(--accent); color: white; border-color: var(--accent); }
     .gallery-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 16px;
-      max-height: 600px;
-      overflow-y: auto;
-      padding-right: 6px;
     }
     .gallery-item {
       background: rgba(0,0,0,0.4);
@@ -225,22 +359,56 @@
       border-radius: 8px;
       overflow: hidden;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      position: relative;
     }
     .gallery-item:hover { transform: scale(1.02); border-color: var(--accent); }
     .gallery-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
     .gallery-item .item-meta {
       padding: 8px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
       display: flex;
       justify-content: space-between;
     }
+    .badge-interp-tag {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: rgba(245, 158, 11, 0.85);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
 
+    /* Pagination controls */
+    .pagination-bar {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+    }
+    .btn-page {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .btn-page:hover:not(:disabled) { background: var(--accent); color: white; }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Modal Image Zoom */
     .modal {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0,0,0,0.88);
       backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
@@ -249,7 +417,7 @@
       padding: 24px;
     }
     .modal.open { display: flex; }
-    .modal img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+    .modal img { max-width: 90vw; max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); }
     .modal-close {
       position: absolute;
       top: 24px;
@@ -265,27 +433,35 @@
     <header>
       <div class="title">
         <h1><span>🎬</span> Video &rarr; Images Generator</h1>
-        <p>Extract frames by total count (30, 60, 100, 500, 1000+), interval, or FPS</p>
+        <p>Enterprise media processing tool with intelligent frame sampling and interpolation</p>
       </div>
       <div>
-        <span class="badge">Task 1 | Media Utility</span>
+        <span class="badge">Task 1 | Media Utility Suite</span>
       </div>
     </header>
 
     <div class="grid">
+      <!-- LEFT COLUMN: VIDEO UPLOAD & QUEUE -->
       <div class="card">
-        <div class="card-title"><span>📁</span> 1. Upload Video</div>
+        <div class="card-title">
+          <span>📁</span> 1. Upload Video(s)
+        </div>
+        
         <div class="dropzone" id="dropzone" onclick="document.getElementById('videoInput').click()">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
             <polyline points="17 8 12 3 7 8"/>
             <line x1="12" y1="3" x2="12" y2="15"/>
           </svg>
-          <h3 id="dropzone-title">Click or Drag &amp; Drop Video Here</h3>
-          <p id="dropzone-sub">Supports MP4, AVI, MOV, MKV, WEBM, FLV, TS</p>
-          <input type="file" id="videoInput" accept="video/*" style="display: none" onchange="handleFileSelect(event)" />
+          <h3 id="dropzone-title">Click or Drag &amp; Drop Video(s) Here</h3>
+          <p id="dropzone-sub">Supports single or multiple MP4, AVI, MOV, MKV, WEBM, FLV, TS</p>
+          <input type="file" id="videoInput" accept="video/*" multiple style="display: none" onchange="handleFileSelect(event)" />
         </div>
 
+        <!-- Multi-Video Queue -->
+        <div class="video-queue" id="videoQueue" style="display: none;"></div>
+
+        <!-- Active Video Metadata Details -->
         <div class="meta-box" id="metaBox" style="display: none;">
           <div class="meta-item">
             <span>Duration</span>
@@ -300,198 +476,359 @@
             <strong id="meta-res">-- x --</strong>
           </div>
           <div class="meta-item">
-            <span>Total Raw Frames</span>
+            <span>Original Frames</span>
             <strong id="meta-total-frames">--</strong>
           </div>
         </div>
 
+        <!-- Teaser First Frame Preview -->
         <div class="teaser-box" id="teaserBox">
           <div style="font-size: 0.8rem; color: var(--accent); font-weight: 600;">First Extracted Frame Preview</div>
           <img id="teaserImg" src="" alt="First frame preview" />
         </div>
       </div>
 
+      <!-- RIGHT COLUMN: SIMPLIFIED EXTRACTION PANEL -->
       <div class="card">
-        <div class="card-title"><span>⚙️</span> 2. Extraction Settings</div>
-
-        <div class="tabs">
-          <button class="tab active" onclick="setMode('count', this)">By Total Count</button>
-          <button class="tab" onclick="setMode('interval', this)">By Interval</button>
-          <button class="tab" onclick="setMode('fps', this)">By Target FPS</button>
-          <button class="tab" onclick="setMode('stride', this)">Every Nth Frame</button>
+        <div class="card-title">
+          <span>⚙️</span> 2. Extraction Configuration
         </div>
 
-        <div id="section-count" class="mode-section">
-          <div class="form-group">
-            <label>Target Number of Images Across Video</label>
-            <input type="number" id="input-count" class="form-input" value="60" min="1" max="10000" />
+        <!-- PRIMARY QUESTION BOX -->
+        <div class="question-box">
+          <div class="question-title">
+            <span>🎯</span> HOW MANY IMAGES DO YOU WANT?
+          </div>
+          <div class="count-input-wrap">
+            <input type="number" id="input-count" class="count-input" value="100" min="1" max="50000" oninput="onCountChanged()" />
             <div class="chips">
-              <div class="chip" onclick="setChipCount(30)">30</div>
-              <div class="chip active" onclick="setChipCount(60)">60</div>
-              <div class="chip" onclick="setChipCount(100)">100</div>
-              <div class="chip" onclick="setChipCount(300)">300</div>
-              <div class="chip" onclick="setChipCount(500)">500</div>
-              <div class="chip" onclick="setChipCount(1000)">1000</div>
+              <div class="chip" onclick="setChip(30)">30</div>
+              <div class="chip active" onclick="setChip(100)">100</div>
+              <div class="chip" onclick="setChip(500)">500</div>
+              <div class="chip" onclick="setChip(1000)">1000</div>
+              <div class="chip" onclick="setChip(2500)">2500</div>
             </div>
-            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
-              Calculates step stride to extract images evenly across the entire duration.
-            </p>
           </div>
         </div>
 
-        <div id="section-interval" class="mode-section" style="display: none;">
+        <!-- INTELLIGENT STRATEGY CARD -->
+        <div class="strategy-card" id="strategyCard" style="display: none;">
+          <div id="strategyBadge" class="strategy-status-badge badge-native">
+            Checking strategy...
+          </div>
+          <p id="strategyMessage" class="strategy-desc">
+            Please upload a video to see frame extraction calculations.
+          </p>
+          <div class="strategy-math">
+            <div>
+              <span>Original Frames</span>
+              <strong id="strat-orig">--</strong>
+            </div>
+            <div>
+              <span>Interpolated</span>
+              <strong id="strat-interp">0</strong>
+            </div>
+            <div>
+              <span>Effective Rate</span>
+              <strong id="strat-eff-fps">-- FPS</strong>
+            </div>
+          </div>
+          <div id="strategyDisclaimer" class="disclaimer-text" style="display: none;">
+            ⚠️ Interpolated frames are synthesized between original video frames and may contain visual artifacts.
+          </div>
+        </div>
+
+        <!-- Advanced Options Accordion -->
+        <button class="advanced-toggle" onclick="toggleAdvanced()">
+          <span id="advIcon">&#9656;</span> Advanced Extraction Options
+        </button>
+        <div class="advanced-panel" id="advancedPanel">
           <div class="form-group">
-            <label>Extract 1 Frame Every (Seconds)</label>
-            <input type="number" id="input-interval" class="form-input" value="1.0" step="0.1" min="0.05" />
+            <label>Mode Override (Optional)</label>
+            <select id="select-mode" class="form-select" onchange="onModeOverrideChanged()">
+              <option value="count" selected>By Number of Images (Recommended)</option>
+              <option value="interval">By Time Interval (Seconds)</option>
+              <option value="fps">By Target FPS</option>
+            </select>
+          </div>
+          <div class="form-group" id="adv-interval-wrap" style="display: none;">
+            <label>Interval (Seconds per Frame)</label>
+            <input type="number" id="input-adv-interval" class="form-input" value="1.0" step="0.1" min="0.05" oninput="recalcFromInterval()" />
+          </div>
+          <div class="form-group" id="adv-fps-wrap" style="display: none;">
+            <label>Target FPS</label>
+            <input type="number" id="input-adv-fps" class="form-input" value="1.0" step="0.5" min="0.1" oninput="recalcFromFps()" />
           </div>
         </div>
 
-        <div id="section-fps" class="mode-section" style="display: none;">
-          <div class="form-group">
-            <label>Target Extraction Rate (FPS)</label>
-            <input type="number" id="input-fps" class="form-input" value="1.0" step="0.5" min="0.1" />
-          </div>
-        </div>
-
-        <div id="section-stride" class="mode-section" style="display: none;">
-          <div class="form-group">
-            <label>Extract Every Nth Frame (Stride)</label>
-            <input type="number" id="input-stride" class="form-input" value="5" min="1" />
-          </div>
-        </div>
-
+        <!-- Format & Resizing Options -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <div class="form-group">
             <label>Image Format</label>
             <select id="select-format" class="form-select">
               <option value="jpg" selected>JPEG (.jpg)</option>
-              <option value="png">PNG (.png)</option>
+              <option value="png">PNG (.png) - Lossless</option>
               <option value="webp">WebP (.webp)</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Resize Images</label>
+            <label>Resize Images (Aspect Preserved)</label>
             <select id="select-resize" class="form-select">
-              <option value="original" selected>Original Size</option>
+              <option value="original" selected>Original Resolution</option>
               <option value="1920x1080">1080p (1920x1080)</option>
               <option value="1280x720">720p (1280x720)</option>
-              <option value="640x640">YOLO (640x640)</option>
+              <option value="640x360">360p (640x360)</option>
+              <option value="640x640">YOLO Standard (640x640)</option>
             </select>
           </div>
         </div>
 
+        <!-- Extract Action Button -->
         <button id="btn-extract" class="btn" onclick="startExtraction()" disabled>
-          Extract Frames Now ⚡
+          GENERATE IMAGES ⚡
         </button>
 
+        <!-- Live Progress Section -->
         <div class="progress-wrap" id="progressWrap">
           <div class="progress-stats">
-            <span id="progress-status">Extracting frames...</span>
-            <span id="progress-percent">0%</span>
+            <span id="progress-stage">Extracting frames...</span>
+            <span id="progress-percent" style="font-weight: 600; color: var(--accent);">0%</span>
           </div>
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressFill"></div>
           </div>
           <div class="progress-stats" style="margin-top: 4px;">
-            <span id="progress-counts">0 / 0 frames</span>
-            <span id="progress-time">Processing in background</span>
+            <span id="progress-counts">0 / 0 images</span>
+            <span id="progress-status-desc">Processing</span>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- GALLERY OF GENERATED IMAGES (PAGINATED) -->
     <div class="gallery-section card" id="gallerySection">
       <div class="gallery-header">
         <div>
           <h2 style="font-size: 1.2rem; font-weight: 600;">🎉 Generated Image Gallery</h2>
           <p id="gallery-summary" style="color: var(--text-muted); font-size: 0.85rem;">0 images generated</p>
         </div>
-        <a id="btn-download-zip" class="btn btn-success" href="#" download style="width: auto; padding: 8px 18px;">
-          📥 Download All as ZIP
-        </a>
+        <div style="display: flex; gap: 10px;">
+          <a id="btn-download-master-zip" class="btn btn-success" href="#" download style="width: auto; padding: 10px 20px;">
+            📥 Download All as ZIP
+          </a>
+        </div>
       </div>
+
+      <!-- Multiple video tabs in gallery -->
+      <div class="gallery-tabs" id="galleryTabs"></div>
+
+      <!-- Progressive Gallery Grid -->
       <div class="gallery-grid" id="galleryGrid"></div>
+
+      <!-- Pagination Controls for Large Sets -->
+      <div class="pagination-bar" id="paginationBar" style="display: none;">
+        <button class="btn-page" id="btn-prev-page" onclick="changePage(-1)">&#9664; Previous</button>
+        <span id="pageIndicator" style="font-size: 0.85rem; color: var(--text-muted);">Page 1 of 1</span>
+        <button class="btn-page" id="btn-next-page" onclick="changePage(1)">Next &#9654;</button>
+      </div>
     </div>
   </div>
 
+  <!-- MODAL FOR FULL IMAGE ZOOM -->
   <div class="modal" id="imgModal" onclick="closeModal()">
     <span class="modal-close">&times;</span>
     <img id="modalImg" src="" alt="Enlarged frame" />
   </div>
 
   <script>
-    let currentJobId = null;
-    let currentMode = 'count';
+    let uploadedVideos = [];
+    let currentActiveVideo = null;
+    let currentBatchJobId = null;
     let pollInterval = null;
 
+    let galleryCurrentVideoId = null;
+    let galleryCurrentPage = 1;
+    let galleryTotalPages = 1;
+
+    // Drag and Drop
     const dropzone = document.getElementById('dropzone');
-    ['dragenter', 'dragover'].forEach(name => {
-      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-    });
-    ['dragleave', 'drop'].forEach(name => {
-      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
-    });
-    dropzone.addEventListener('drop', (e) => {
-      if (e.dataTransfer.files.length) {
-        uploadVideoFile(e.dataTransfer.files[0]);
-      }
+    ['dragenter', 'dragover'].forEach(n => dropzone.addEventListener(n, e => { e.preventDefault(); dropzone.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(n => dropzone.addEventListener(n, e => { e.preventDefault(); dropzone.classList.remove('dragover'); }));
+    dropzone.addEventListener('drop', e => {
+      if (e.dataTransfer.files.length) uploadFiles(Array.from(e.dataTransfer.files));
     });
 
     function handleFileSelect(e) {
-      if (e.target.files.length) {
-        uploadVideoFile(e.target.files[0]);
-      }
+      if (e.target.files.length) uploadFiles(Array.from(e.target.files));
     }
 
-    async function uploadVideoFile(file) {
-      document.getElementById('dropzone-title').textContent = 'Uploading ' + file.name + '...';
-      document.getElementById('dropzone-sub').textContent = 'Reading video metadata...';
+    async function uploadFiles(files) {
+      document.getElementById('dropzone-title').textContent = 'Uploading ' + files.length + ' video(s)...';
+      document.getElementById('dropzone-sub').textContent = 'Validating and reading media parameters...';
 
       const fd = new FormData();
-      fd.append('video', file);
+      files.forEach(f => fd.append('videos', f));
 
       try {
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Upload failed');
 
-        currentJobId = data.job_id;
-        document.getElementById('dropzone-title').textContent = data.filename;
-        document.getElementById('dropzone-sub').textContent = 'Ready for extraction';
-        
-        document.getElementById('meta-duration').textContent = data.info.duration_formatted;
-        document.getElementById('meta-fps').textContent = data.info.fps + ' FPS';
-        document.getElementById('meta-res').textContent = data.info.width + ' x ' + data.info.height;
-        document.getElementById('meta-total-frames').textContent = data.info.total_frames.toLocaleString();
-        document.getElementById('metaBox').style.display = 'grid';
+        uploadedVideos = data.videos;
+        renderVideoQueue();
 
-        document.getElementById('btn-extract').disabled = false;
+        if (uploadedVideos.length > 0) {
+          selectActiveVideo(uploadedVideos[0]);
+          document.getElementById('btn-extract').disabled = false;
+        }
+
+        document.getElementById('dropzone-title').textContent = '✅ ' + uploadedVideos.length + ' Video(s) Ready';
+        document.getElementById('dropzone-sub').textContent = 'Drop more videos or configure frame counts below';
       } catch (err) {
         alert('Upload Error: ' + err.message);
-        document.getElementById('dropzone-title').textContent = 'Click or Drag & Drop Video Here';
+        document.getElementById('dropzone-title').textContent = 'Click or Drag & Drop Video(s) Here';
       }
     }
 
-    function setMode(mode, btn) {
-      currentMode = mode;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.getElementById('section-count').style.display = (mode === 'count') ? 'block' : 'none';
-      document.getElementById('section-interval').style.display = (mode === 'interval') ? 'block' : 'none';
-      document.getElementById('section-fps').style.display = (mode === 'fps') ? 'block' : 'none';
-      document.getElementById('section-stride').style.display = (mode === 'stride') ? 'block' : 'none';
-    }
-
-    function setChipCount(n) {
-      document.getElementById('input-count').value = n;
-      document.querySelectorAll('#section-count .chip').forEach(c => {
-        c.classList.toggle('active', parseInt(c.textContent) === n);
+    function renderVideoQueue() {
+      const q = document.getElementById('videoQueue');
+      if (uploadedVideos.length <= 1) {
+        q.style.display = 'none';
+        return;
+      }
+      q.style.display = 'flex';
+      q.innerHTML = '';
+      uploadedVideos.forEach((v, idx) => {
+        const div = document.createElement('div');
+        div.className = 'video-item ' + (currentActiveVideo && currentActiveVideo.id === v.id ? 'active' : '');
+        div.onclick = () => selectActiveVideo(v);
+        div.innerHTML = `
+          <div>
+            <strong>${v.filename}</strong>
+            <div class="video-item-meta">
+              <span>Duration: <strong>${v.info.duration_formatted}</strong></span>
+              <span>FPS: <strong>${v.info.fps}</strong></span>
+              <span>Frames: <strong>${v.info.total_frames}</strong></span>
+            </div>
+          </div>
+          <button class="btn-remove-video" onclick="event.stopPropagation(); removeVideo(${idx})">&times;</button>
+        `;
+        q.appendChild(div);
       });
     }
 
+    function selectActiveVideo(v) {
+      currentActiveVideo = v;
+      renderVideoQueue();
+
+      document.getElementById('meta-duration').textContent = v.info.duration_formatted;
+      document.getElementById('meta-fps').textContent = v.info.fps + ' FPS';
+      document.getElementById('meta-res').textContent = v.info.width + ' x ' + v.info.height;
+      document.getElementById('meta-total-frames').textContent = v.info.total_frames.toLocaleString();
+      document.getElementById('metaBox').style.display = 'grid';
+
+      updateStrategyCard();
+    }
+
+    function removeVideo(idx) {
+      uploadedVideos.splice(idx, 1);
+      if (uploadedVideos.length > 0) {
+        selectActiveVideo(uploadedVideos[0]);
+      } else {
+        currentActiveVideo = null;
+        document.getElementById('metaBox').style.display = 'none';
+        document.getElementById('strategyCard').style.display = 'none';
+        document.getElementById('videoQueue').style.display = 'none';
+        document.getElementById('btn-extract').disabled = true;
+      }
+    }
+
+    function setChip(n) {
+      document.getElementById('input-count').value = n;
+      document.querySelectorAll('.chips .chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.textContent) === n);
+      });
+      updateStrategyCard();
+    }
+
+    function onCountChanged() {
+      const val = parseInt(document.getElementById('input-count').value) || 0;
+      document.querySelectorAll('.chips .chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.textContent) === val);
+      });
+      updateStrategyCard();
+    }
+
+    function updateStrategyCard() {
+      if (!currentActiveVideo) return;
+      const count = parseInt(document.getElementById('input-count').value) || 0;
+      if (count <= 0) return;
+
+      const duration = currentActiveVideo.info.duration_seconds || 1.0;
+      const totalNative = currentActiveVideo.info.total_frames || 1;
+      const effFps = (count / duration).toFixed(1);
+
+      const card = document.getElementById('strategyCard');
+      const badge = document.getElementById('strategyBadge');
+      const msg = document.getElementById('strategyMessage');
+      const disclaimer = document.getElementById('strategyDisclaimer');
+
+      card.style.display = 'block';
+      document.getElementById('strat-orig').textContent = Math.min(count, totalNative);
+      document.getElementById('strat-eff-fps').textContent = effFps + ' FPS';
+
+      if (count > totalNative) {
+        const interp = count - totalNative;
+        document.getElementById('strat-interp').textContent = interp.toLocaleString();
+        badge.className = 'strategy-status-badge badge-interpolated';
+        badge.textContent = '⚠️ Frame Interpolation Required';
+        msg.textContent = `${totalNative.toLocaleString()} original frames available. You requested ${count.toLocaleString()} images, so ${interp.toLocaleString()} additional frames will be generated through frame interpolation.`;
+        disclaimer.style.display = 'block';
+      } else {
+        document.getElementById('strat-interp').textContent = '0';
+        badge.className = 'strategy-status-badge badge-native';
+        badge.textContent = '✅ Native Frame Extraction';
+        msg.textContent = `Your video contains approximately ${totalNative.toLocaleString()} original frames. All ${count.toLocaleString()} images will be sampled directly and evenly across the video timeline.`;
+        disclaimer.style.display = 'none';
+      }
+    }
+
+    function toggleAdvanced() {
+      const p = document.getElementById('advancedPanel');
+      const icon = document.getElementById('advIcon');
+      if (p.style.display === 'block') {
+        p.style.display = 'none';
+        icon.innerHTML = '&#9656;';
+      } else {
+        p.style.display = 'block';
+        icon.innerHTML = '&#9662;';
+      }
+    }
+
+    function onModeOverrideChanged() {
+      const mode = document.getElementById('select-mode').value;
+      document.getElementById('adv-interval-wrap').style.display = mode === 'interval' ? 'block' : 'none';
+      document.getElementById('adv-fps-wrap').style.display = mode === 'fps' ? 'block' : 'none';
+    }
+
+    function recalcFromInterval() {
+      if (!currentActiveVideo) return;
+      const sec = parseFloat(document.getElementById('input-adv-interval').value) || 1.0;
+      const total = Math.max(1, Math.round(currentActiveVideo.info.duration_seconds / sec));
+      document.getElementById('input-count').value = total;
+      onCountChanged();
+    }
+
+    function recalcFromFps() {
+      if (!currentActiveVideo) return;
+      const targetFps = parseFloat(document.getElementById('input-adv-fps').value) || 1.0;
+      const total = Math.max(1, Math.round(currentActiveVideo.info.duration_seconds * targetFps));
+      document.getElementById('input-count').value = total;
+      onCountChanged();
+    }
+
     async function startExtraction() {
-      if (!currentJobId) return;
+      if (!uploadedVideos.length) return;
 
       const btn = document.getElementById('btn-extract');
       btn.disabled = true;
@@ -504,12 +841,8 @@
       }
 
       const payload = {
-        job_id: currentJobId,
-        mode: currentMode,
+        video_ids: uploadedVideos.map(v => v.id),
         target_count: parseInt(document.getElementById('input-count').value) || 60,
-        interval_seconds: parseFloat(document.getElementById('input-interval').value) || 1.0,
-        target_fps: parseFloat(document.getElementById('input-fps').value) || 1.0,
-        stride: parseInt(document.getElementById('input-stride').value) || 5,
         format: document.getElementById('select-format').value,
         resize: resize
       };
@@ -526,8 +859,9 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
+        currentBatchJobId = data.job_id;
         if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(checkProgress, 350);
+        pollInterval = setInterval(checkProgress, 400);
       } catch (err) {
         alert('Extraction failed to start: ' + err.message);
         btn.disabled = false;
@@ -535,32 +869,40 @@
     }
 
     async function checkProgress() {
-      if (!currentJobId) return;
+      if (!currentBatchJobId) return;
       try {
-        const res = await fetch('/api/progress/' + currentJobId);
+        const res = await fetch('/api/jobs/' + currentBatchJobId);
         const data = await res.json();
 
-        document.getElementById('progressFill').style.width = data.progress + '%';
-        document.getElementById('progress-percent').textContent = data.progress + '%';
-        document.getElementById('progress-counts').textContent = data.current + ' / ' + data.total + ' frames';
+        // Calculate aggregate progress
+        let totalCurrent = 0;
+        let totalTarget = 0;
+        let activeStage = 'Processing...';
 
-        if (data.first_frame_url) {
-          const tb = document.getElementById('teaserBox');
-          const ti = document.getElementById('teaserImg');
-          if (tb.style.display !== 'block') {
-            ti.src = data.first_frame_url;
-            tb.style.display = 'block';
+        data.videos.forEach(v => {
+          totalCurrent += v.current;
+          totalTarget += v.total;
+          if (v.status === 'processing') activeStage = `${v.filename}: ${v.stage}`;
+          if (v.first_frame_url && !document.getElementById('teaserBox').style.display.includes('block')) {
+            document.getElementById('teaserImg').src = v.first_frame_url;
+            document.getElementById('teaserBox').style.display = 'block';
           }
-        }
+        });
+
+        const overallPercent = totalTarget > 0 ? Math.min(100, Math.round((totalCurrent / totalTarget) * 100)) : 0;
+        document.getElementById('progressFill').style.width = overallPercent + '%';
+        document.getElementById('progress-percent').textContent = overallPercent + '%';
+        document.getElementById('progress-counts').textContent = `${totalCurrent} / ${totalTarget} images`;
+        document.getElementById('progress-stage').textContent = activeStage;
 
         if (data.status === 'completed') {
           clearInterval(pollInterval);
-          document.getElementById('progress-status').textContent = 'Extraction Complete!';
+          document.getElementById('progress-stage').textContent = '✅ Extraction Completed Successfully!';
           document.getElementById('btn-extract').disabled = false;
-          loadGallery();
+          loadGallery(data.videos[0].video_id, 1);
         } else if (data.status === 'failed') {
           clearInterval(pollInterval);
-          document.getElementById('progress-status').textContent = 'Failed: ' + data.error;
+          document.getElementById('progress-stage').textContent = '❌ Job Failed: ' + data.error;
           document.getElementById('btn-extract').disabled = false;
         }
       } catch (e) {
@@ -568,26 +910,68 @@
       }
     }
 
-    async function loadGallery() {
-      const res = await fetch('/api/images/' + currentJobId);
+    async function loadGallery(videoId, page = 1) {
+      galleryCurrentVideoId = videoId;
+      galleryCurrentPage = page;
+
+      const url = `/api/jobs/${currentBatchJobId}/images?video_id=${videoId || ''}&page=${page}&per_page=50`;
+      const res = await fetch(url);
       const data = await res.json();
+
+      document.getElementById('gallery-summary').textContent = `${data.total_images} total images generated | Showing page ${data.page} of ${data.total_pages}`;
+      document.getElementById('btn-download-master-zip').href = `/api/jobs/${currentBatchJobId}/download-zip`;
+
+      // Render video tabs if multiple videos exist
+      const tabsWrap = document.getElementById('galleryTabs');
+      tabsWrap.innerHTML = '';
+      if (uploadedVideos.length > 1) {
+        uploadedVideos.forEach(v => {
+          const btn = document.createElement('button');
+          btn.className = 'gallery-tab ' + (v.id === videoId ? 'active' : '');
+          btn.textContent = v.filename;
+          btn.onclick = () => loadGallery(v.id, 1);
+          tabsWrap.appendChild(btn);
+        });
+      }
+
+      // Render image grid
       const grid = document.getElementById('galleryGrid');
       grid.innerHTML = '';
-
-      document.getElementById('gallery-summary').textContent = data.images.length + ' frames extracted successfully';
-      document.getElementById('btn-download-zip').href = data.zip_url;
-
       data.images.forEach(img => {
         const item = document.createElement('div');
         item.className = 'gallery-item';
         item.onclick = () => openModal(img.url);
-        item.innerHTML = '<img src="' + img.url + '" loading="lazy" alt="Frame" />' +
-          '<div class="item-meta"><span>#' + img.frame_idx + '</span><span>' + img.timestamp + 's</span></div>';
+        item.innerHTML = `
+          <img src="${img.url}" loading="lazy" alt="Frame" />
+          ${img.is_interpolated ? '<span class="badge-interp-tag">INTERPOLATED</span>' : ''}
+          <div class="item-meta">
+            <span>#${img.frame_idx}</span>
+            <span>${img.timestamp}s</span>
+          </div>
+        `;
         grid.appendChild(item);
       });
 
+      // Pagination Controls
+      galleryTotalPages = data.total_pages;
+      const pBar = document.getElementById('paginationBar');
+      if (galleryTotalPages > 1) {
+        pBar.style.display = 'flex';
+        document.getElementById('pageIndicator').textContent = `Page ${data.page} of ${data.total_pages}`;
+        document.getElementById('btn-prev-page').disabled = data.page <= 1;
+        document.getElementById('btn-next-page').disabled = data.page >= data.total_pages;
+      } else {
+        pBar.style.display = 'none';
+      }
+
       document.getElementById('gallerySection').style.display = 'block';
-      grid.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function changePage(delta) {
+      const newPage = galleryCurrentPage + delta;
+      if (newPage >= 1 && newPage <= galleryTotalPages) {
+        loadGallery(galleryCurrentVideoId, newPage);
+      }
     }
 
     function openModal(url) {

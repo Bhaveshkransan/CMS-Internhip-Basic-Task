@@ -109,10 +109,26 @@ def extract_frames_from_video(
         encode_params = [cv2.IMWRITE_PNG_COMPRESSION, 3]
 
     try:
-        # Strategy A: Target Count (Uniform distribution)
+        # Strategy A: Target Count (Uniform distribution or Interpolation)
         if target_count is not None:
             if target_count <= 0:
                 raise ValueError("target_count must be > 0.")
+
+            # If user requests more frames than available in the video window, use frame interpolation
+            if target_count > total_window_frames:
+                capture.release()
+                from task1_services.extractor import extract_video_to_images
+                res = extract_video_to_images(
+                    video_path=video_path,
+                    output_dir=output_dir,
+                    requested_count=target_count,
+                    img_fmt=img_format,
+                    quality=quality,
+                    resize_dim=resize,
+                )
+                print(f"[INFO] Interpolation applied: {res['original_frames']} original frames, {res['interpolated_frames']} synthetic interpolated frames generated.")
+                return res["generated"]
+
             if target_count == 1:
                 indices = [start_frame + total_window_frames // 2]
             else:
