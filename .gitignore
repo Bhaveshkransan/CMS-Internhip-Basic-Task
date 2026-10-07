@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+task1_storage/uploads/*
+task1_storage/outputs/*
+task1_storage/zips/*
+!task1_storage/.gitkeep
+test_frames_1s/
+test_standalones_sandbox/
+*.mp4
+*.pt
+.vscode/

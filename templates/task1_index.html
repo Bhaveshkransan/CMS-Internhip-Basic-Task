@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task 1: Video to Images Generator | Media Utility Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #4f8cff;
+      --accent-glow: rgba(79, 140, 255, 0.25);
+      --accent-hover: #3b74e6;
+      --success: #10b981;
+      --success-dim: rgba(16, 185, 129, 0.15);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --radius: 12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(at 0% 0%, rgba(79, 140, 255, 0.08) 0px, transparent 50%),
+                        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .badge {
+      font-size: 0.75rem;
+      background: rgba(79, 140, 255, 0.15);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .title h1 { font-size: 1.6rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+    .title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+    
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropzone {
+      border: 2px dashed rgba(255,255,255,0.15);
+      border-radius: var(--radius);
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      background: rgba(255,255,255,0.02);
+    }
+    .dropzone:hover, .dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+    .dropzone svg { stroke: var(--accent); margin-bottom: 12px; }
+    .dropzone h3 { font-size: 1rem; margin-bottom: 4px; }
+    .dropzone p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .meta-box {
+      margin-top: 16px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    .meta-item span { display: block; color: var(--text-muted); font-size: 0.75rem; }
+    .meta-item strong { color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: 8px; }
+    .tab {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 0.82rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 2px 10px var(--accent-glow);
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+    .form-input, .form-select {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .form-input:focus, .form-select:focus { border-color: var(--accent); }
+    
+    .chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+    .chip {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .chip:hover, .chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 14px var(--accent-glow);
+      text-decoration: none;
+    }
+    .btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-success { background: var(--success); box-shadow: 0 4px 14px var(--success-dim); }
+    .btn-success:hover { background: #059669; }
+
+    .progress-wrap { margin-top: 20px; display: none; }
+    .progress-bar-bg {
+      background: rgba(255,255,255,0.08);
+      border-radius: 9999px;
+      height: 10px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .progress-bar-fill {
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      height: 100%;
+      width: 0%;
+      border-radius: 9999px;
+      transition: width 0.15s ease;
+    }
+    .progress-stats { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+
+    .teaser-box {
+      margin-top: 16px;
+      display: none;
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+      text-align: center;
+    }
+    .teaser-box img { max-height: 140px; border-radius: 6px; margin-top: 8px; }
+
+    .gallery-section { margin-top: 32px; display: none; }
+    .gallery-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      max-height: 600px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .gallery-item {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .gallery-item:hover { transform: scale(1.02); border-color: var(--accent); }
+    .gallery-item img { width: 100%; height: 110px; object-fit: cover; display: block; }
+    .gallery-item .item-meta {
+      padding: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 24px;
+    }
+    .modal.open { display: flex; }
+    .modal img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+    .modal-close {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title">
+        <h1><span>🎬</span> Video &rarr; Images Generator</h1>
+        <p>Extract frames by total count (30, 60, 100, 500, 1000+), interval, or FPS</p>
+      </div>
+      <div>
+        <span class="badge">Task 1 | Media Utility</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-title"><span>📁</span> 1. Upload Video</div>
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('videoInput').click()">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <h3 id="dropzone-title">Click or Drag &amp; Drop Video Here</h3>
+          <p id="dropzone-sub">Supports MP4, AVI, MOV, MKV, WEBM, FLV, TS</p>
+          <input type="file" id="videoInput" accept="video/*" style="display: none" onchange="handleFileSelect(event)" />
+        </div>
+
+        <div class="meta-box" id="metaBox" style="display: none;">
+          <div class="meta-item">
+            <span>Duration</span>
+            <strong id="meta-duration">--:--:--</strong>
+          </div>
+          <div class="meta-item">
+            <span>Native FPS</span>
+            <strong id="meta-fps">-- FPS</strong>
+          </div>
+          <div class="meta-item">
+            <span>Resolution</span>
+            <strong id="meta-res">-- x --</strong>
+          </div>
+          <div class="meta-item">
+            <span>Total Raw Frames</span>
+            <strong id="meta-total-frames">--</strong>
+          </div>
+        </div>
+
+        <div class="teaser-box" id="teaserBox">
+          <div style="font-size: 0.8rem; color: var(--accent); font-weight: 600;">First Extracted Frame Preview</div>
+          <img id="teaserImg" src="" alt="First frame preview" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span>⚙️</span> 2. Extraction Settings</div>
+
+        <div class="tabs">
+          <button class="tab active" onclick="setMode('count', this)">By Total Count</button>
+          <button class="tab" onclick="setMode('interval', this)">By Interval</button>
+          <button class="tab" onclick="setMode('fps', this)">By Target FPS</button>
+          <button class="tab" onclick="setMode('stride', this)">Every Nth Frame</button>
+        </div>
+
+        <div id="section-count" class="mode-section">
+          <div class="form-group">
+            <label>Target Number of Images Across Video</label>
+            <input type="number" id="input-count" class="form-input" value="60" min="1" max="10000" />
+            <div class="chips">
+              <div class="chip" onclick="setChipCount(30)">30</div>
+              <div class="chip active" onclick="setChipCount(60)">60</div>
+              <div class="chip" onclick="setChipCount(100)">100</div>
+              <div class="chip" onclick="setChipCount(300)">300</div>
+              <div class="chip" onclick="setChipCount(500)">500</div>
+              <div class="chip" onclick="setChipCount(1000)">1000</div>
+            </div>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
+              Calculates step stride to extract images evenly across the entire duration.
+            </p>
+          </div>
+        </div>
+
+        <div id="section-interval" class="mode-section" style="display: none;">
+          <div class="form-group">
+            <label>Extract 1 Frame Every (Seconds)</label>
+            <input type="number" id="input-interval" class="form-input" value="1.0" step="0.1" min="0.05" />
+          </div>
+        </div>
+
+        <div id="section-fps" class="mode-section" style="display: none;">
+          <div class="form-group">
+            <label>Target Extraction Rate (FPS)</label>
+            <input type="number" id="input-fps" class="form-input" value="1.0" step="0.5" min="0.1" />
+          </div>
+        </div>
+
+        <div id="section-stride" class="mode-section" style="display: none;">
+          <div class="form-group">
+            <label>Extract Every Nth Frame (Stride)</label>
+            <input type="number" id="input-stride" class="form-input" value="5" min="1" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label>Image Format</label>
+            <select id="select-format" class="form-select">
+              <option value="jpg" selected>JPEG (.jpg)</option>
+              <option value="png">PNG (.png)</option>
+              <option value="webp">WebP (.webp)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Resize Images</label>
+            <select id="select-resize" class="form-select">
+              <option value="original" selected>Original Size</option>
+              <option value="1920x1080">1080p (1920x1080)</option>
+              <option value="1280x720">720p (1280x720)</option>
+              <option value="640x640">YOLO (640x640)</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="btn-extract" class="btn" onclick="startExtraction()" disabled>
+          Extract Frames Now ⚡
+        </button>
+
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-stats">
+            <span id="progress-status">Extracting frames...</span>
+            <span id="progress-percent">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-stats" style="margin-top: 4px;">
+            <span id="progress-counts">0 / 0 frames</span>
+            <span id="progress-time">Processing in background</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gallery-section card" id="gallerySection">
+      <div class="gallery-header">
+        <div>
+          <h2 style="font-size: 1.2rem; font-weight: 600;">🎉 Generated Image Gallery</h2>
+          <p id="gallery-summary" style="color: var(--text-muted); font-size: 0.85rem;">0 images generated</p>
+        </div>
+        <a id="btn-download-zip" class="btn btn-success" href="#" download style="width: auto; padding: 8px 18px;">
+          📥 Download All as ZIP
+        </a>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="imgModal" onclick="closeModal()">
+    <span class="modal-close">&times;</span>
+    <img id="modalImg" src="" alt="Enlarged frame" />
+  </div>
+
+  <script>
+    let currentJobId = null;
+    let currentMode = 'count';
+    let pollInterval = null;
+
+    const dropzone = document.getElementById('dropzone');
+    ['dragenter', 'dragover'].forEach(name => {
+      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dropzone.addEventListener(name, (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
+    });
+    dropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files.length) {
+        uploadVideoFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files.length) {
+        uploadVideoFile(e.target.files[0]);
+      }
+    }
+
+    async function uploadVideoFile(file) {
+      document.getElementById('dropzone-title').textContent = 'Uploading ' + file.name + '...';
+      document.getElementById('dropzone-sub').textContent = 'Reading video metadata...';
+
+      const fd = new FormData();
+      fd.append('video', file);
+
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+        currentJobId = data.job_id;
+        document.getElementById('dropzone-title').textContent = data.filename;
+        document.getElementById('dropzone-sub').textContent = 'Ready for extraction';
+        
+        document.getElementById('meta-duration').textContent = data.info.duration_formatted;
+        document.getElementById('meta-fps').textContent = data.info.fps + ' FPS';
+        document.getElementById('meta-res').textContent = data.info.width + ' x ' + data.info.height;
+        document.getElementById('meta-total-frames').textContent = data.info.total_frames.toLocaleString();
+        document.getElementById('metaBox').style.display = 'grid';
+
+        document.getElementById('btn-extract').disabled = false;
+      } catch (err) {
+        alert('Upload Error: ' + err.message);
+        document.getElementById('dropzone-title').textContent = 'Click or Drag & Drop Video Here';
+      }
+    }
+
+    function setMode(mode, btn) {
+      currentMode = mode;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.getElementById('section-count').style.display = (mode === 'count') ? 'block' : 'none';
+      document.getElementById('section-interval').style.display = (mode === 'interval') ? 'block' : 'none';
+      document.getElementById('section-fps').style.display = (mode === 'fps') ? 'block' : 'none';
+      document.getElementById('section-stride').style.display = (mode === 'stride') ? 'block' : 'none';
+    }
+
+    function setChipCount(n) {
+      document.getElementById('input-count').value = n;
+      document.querySelectorAll('#section-count .chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.textContent) === n);
+      });
+    }
+
+    async function startExtraction() {
+      if (!currentJobId) return;
+
+      const btn = document.getElementById('btn-extract');
+      btn.disabled = true;
+
+      let resize = null;
+      const resVal = document.getElementById('select-resize').value;
+      if (resVal !== 'original') {
+        const parts = resVal.split('x').map(Number);
+        resize = [parts[0], parts[1]];
+      }
+
+      const payload = {
+        job_id: currentJobId,
+        mode: currentMode,
+        target_count: parseInt(document.getElementById('input-count').value) || 60,
+        interval_seconds: parseFloat(document.getElementById('input-interval').value) || 1.0,
+        target_fps: parseFloat(document.getElementById('input-fps').value) || 1.0,
+        stride: parseInt(document.getElementById('input-stride').value) || 5,
+        format: document.getElementById('select-format').value,
+        resize: resize
+      };
+
+      document.getElementById('progressWrap').style.display = 'block';
+      document.getElementById('teaserBox').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/extract', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(checkProgress, 350);
+      } catch (err) {
+        alert('Extraction failed to start: ' + err.message);
+        btn.disabled = false;
+      }
+    }
+
+    async function checkProgress() {
+      if (!currentJobId) return;
+      try {
+        const res = await fetch('/api/progress/' + currentJobId);
+        const data = await res.json();
+
+        document.getElementById('progressFill').style.width = data.progress + '%';
+        document.getElementById('progress-percent').textContent = data.progress + '%';
+        document.getElementById('progress-counts').textContent = data.current + ' / ' + data.total + ' frames';
+
+        if (data.first_frame_url) {
+          const tb = document.getElementById('teaserBox');
+          const ti = document.getElementById('teaserImg');
+          if (tb.style.display !== 'block') {
+            ti.src = data.first_frame_url;
+            tb.style.display = 'block';
+          }
+        }
+
+        if (data.status === 'completed') {
+          clearInterval(pollInterval);
+          document.getElementById('progress-status').textContent = 'Extraction Complete!';
+          document.getElementById('btn-extract').disabled = false;
+          loadGallery();
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          document.getElementById('progress-status').textContent = 'Failed: ' + data.error;
+          document.getElementById('btn-extract').disabled = false;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadGallery() {
+      const res = await fetch('/api/images/' + currentJobId);
+      const data = await res.json();
+      const grid = document.getElementById('galleryGrid');
+      grid.innerHTML = '';
+
+      document.getElementById('gallery-summary').textContent = data.images.length + ' frames extracted successfully';
+      document.getElementById('btn-download-zip').href = data.zip_url;
+
+      data.images.forEach(img => {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.onclick = () => openModal(img.url);
+        item.innerHTML = '<img src="' + img.url + '" loading="lazy" alt="Frame" />' +
+          '<div class="item-meta"><span>#' + img.frame_idx + '</span><span>' + img.timestamp + 's</span></div>';
+        grid.appendChild(item);
+      });
+
+      document.getElementById('gallerySection').style.display = 'block';
+      grid.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openModal(url) {
+      document.getElementById('modalImg').src = url;
+      document.getElementById('imgModal').classList.add('open');
+    }
+    function closeModal() {
+      document.getElementById('imgModal').classList.remove('open');
+    }
+  </script>
+</body>
+</html>
